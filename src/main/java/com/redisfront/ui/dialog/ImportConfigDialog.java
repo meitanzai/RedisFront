@@ -4,7 +4,6 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IORuntimeException;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -20,15 +19,12 @@ import com.redisfront.commons.util.AlertUtils;
 import com.redisfront.commons.util.LocaleUtils;
 import com.redisfront.model.ConnectInfo;
 import com.redisfront.service.ConnectService;
-import com.redisfront.ui.form.MainNoneForm;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.util.Map;
 
 public class ImportConfigDialog extends AbstractDialog<Void> {
@@ -127,6 +123,7 @@ public class ImportConfigDialog extends AbstractDialog<Void> {
                                     ConnectService.service.save(connectInfo);
                                 }
                             }
+                            AlertUtils.showInformationDialog("导入完成");
                         }
                     } catch (IORuntimeException e) {
                         AlertUtils.showInformationDialog("RDM配置读取异常");
