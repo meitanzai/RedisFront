@@ -73,6 +73,27 @@ public class DataSearchForm {
     private final ConnectInfo connectInfo;
     private JButton searchBtn;
 
+    private final ArrayList<DbInfo> dbList = new ArrayList<>() {
+        {
+            add(new DbInfo("DB0", 0));
+            add(new DbInfo("DB1", 1));
+            add(new DbInfo("DB2", 2));
+            add(new DbInfo("DB3", 3));
+            add(new DbInfo("DB4", 4));
+            add(new DbInfo("DB5", 5));
+            add(new DbInfo("DB6", 6));
+            add(new DbInfo("DB7", 7));
+            add(new DbInfo("DB8", 8));
+            add(new DbInfo("DB9", 9));
+            add(new DbInfo("DB10", 10));
+            add(new DbInfo("DB11", 11));
+            add(new DbInfo("DB12", 12));
+            add(new DbInfo("DB13", 13));
+            add(new DbInfo("DB14", 14));
+            add(new DbInfo("DB15", 15));
+        }
+    };
+
     static final ExecutorService executorService = Executors.newFixedThreadPool(5);
 
     public JPanel getContentPanel() {
@@ -107,10 +128,6 @@ public class DataSearchForm {
 
             var lastSearchKey = scanKeysContext.getSearchKey();
             scanKeysContext.setSearchKey(key);
-
-            if (Fn.isNull(scanKeysContext.getScanCursor())) {
-                scanKeysContext.setScanCursor(ScanCursor.INITIAL);
-            }
 
             if (!key.contains("*")) {
                 var all = allField.getText();
@@ -169,7 +186,7 @@ public class DataSearchForm {
                     var current = Long.parseLong(scanInfo[0]);
                     var allSize = NumberUtil.isNumber(scanInfo[1]) ? Long.parseLong(scanInfo[1]) : 0;
                     //如果全部扫描完成！
-                    if (current >= allSize) {
+                    if (current >= allSize && scanKeysContext.getKeyList().size() == allSize) {
                         loadMoreBtn.setText(LocaleUtils.getMessageFromBundle("DataSearchForm.loadMoreBtn.complete.title"));
                         loadMoreBtn.setEnabled(false);
                         return;
@@ -192,6 +209,7 @@ public class DataSearchForm {
                     loadMoreBtn.setEnabled(false);
                 }
                 keyTree.setModel(treeModel);
+                keyTree.updateUI();
             });
             scanAfterProcess();
         } catch (Exception e) {
@@ -331,10 +349,17 @@ public class DataSearchForm {
                 setToolTipText(LocaleUtils.getMessageFromBundle("DataSearchForm.refreshBtn.title"));
             }
         };
-        refreshBtn.addActionListener(e -> SwingUtilities.invokeLater(() -> {
-            searchTextField.setText("");
-            scanKeysAndInitScanInfo();
-        }));
+
+        //刷新按钮事件
+        refreshBtn.addActionListener(e -> {
+            refreshBtn.setEnabled(false);
+            SwingUtilities.invokeLater(() -> {
+                var selectedIndex = databaseComboBox.getSelectedIndex();
+                searchTextField.setText("");
+                databaseComboBox.removeAllItems();
+                databaseComboBoxInit(selectedIndex);
+            });
+        });
         refreshBtn.setIcon(UI.REFRESH_ICON);
 
         deleteAllBtn = new JButton() {
@@ -347,7 +372,7 @@ public class DataSearchForm {
 
         deleteAllBtn.addActionListener(e -> FutureUtils.runAsync(
                 () -> {
-                    String operation = JOptionPane.showInputDialog(LocaleUtils.getMessageFromBundle("DataSearchForm.showInputDialog.title") + "\n 1.flushdb \n 2.flushall");
+                    String operation = JOptionPane.showInputDialog(LocaleUtils.getMessageFromBundle("DataSearchForm.showInputDialog.title") + "\n “flushdb” or “flushall” ");
                     if (Fn.equal(operation, "flushdb")) {
                         RedisBasicService.service.flushdb(connectInfo);
                     } else if (Fn.equal(operation, "flushall")) {
@@ -375,53 +400,16 @@ public class DataSearchForm {
             scanKeysActionPerformed();
         });
 
-        var dbList = new ArrayList<DbInfo>() {
-            {
-                add(new DbInfo("DB0", 0));
-                add(new DbInfo("DB1", 1));
-                add(new DbInfo("DB2", 2));
-                add(new DbInfo("DB3", 3));
-                add(new DbInfo("DB4", 4));
-                add(new DbInfo("DB5", 5));
-                add(new DbInfo("DB6", 6));
-                add(new DbInfo("DB7", 7));
-                add(new DbInfo("DB8", 8));
-                add(new DbInfo("DB9", 9));
-                add(new DbInfo("DB10", 10));
-                add(new DbInfo("DB11", 11));
-                add(new DbInfo("DB12", 12));
-                add(new DbInfo("DB13", 13));
-                add(new DbInfo("DB14", 14));
-                add(new DbInfo("DB15", 15));
-            }
-        };
 
         scanKeysContextMap = new ConcurrentHashMap<>();
 
-        if (Fn.notEqual(connectInfo.redisModeEnum(), Enum.RedisMode.CLUSTER)) {
-            var keySpace = RedisBasicService.service.getKeySpace(connectInfo);
-            for (var dbInfo : dbList) {
-                var value = (String) keySpace.get(dbInfo.dbName().toLowerCase());
-                if (Fn.isNotEmpty(value)) {
-                    String[] s = value.split(",");
-                    String[] sub = s[0].split("=");
-                    dbInfo.setDbSize(Long.valueOf(sub[1]));
-                }
-                scanKeysContextMap.put(dbInfo.dbIndex(), new ScanContext<>());
-                databaseComboBox.addItem(dbInfo);
-            }
-        } else {
-            var dbInfo = dbList.get(0);
-            scanKeysContextMap.put(dbInfo.dbIndex(), new ScanContext<>());
-            var dbSize = RedisBasicService.service.dbSize(connectInfo);
-            dbInfo.setDbSize(dbSize);
-            databaseComboBox.addItem(dbInfo);
-            databaseComboBox.setEnabled(false);
-        }
+        databaseComboBoxInit(0);
 
         databaseComboBox.addActionListener(e -> {
             var db = (DbInfo) databaseComboBox.getSelectedItem();
-            assert db != null;
+            if (Fn.isNull(db)) {
+                return;
+            }
             connectInfo.setDatabase(db.dbIndex());
             scanKeysContextMap.put(connectInfo.database(), new ScanContext<>());
             var limit = PrefUtils.getState().getLong(Const.KEY_KEY_MAX_LOAD_NUM, 10000L);
@@ -707,6 +695,33 @@ public class DataSearchForm {
         allField.setBorder(new EmptyBorder(0, 5, 0, 0));
         allField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_COMPONENT, allLabel);
 
+    }
+
+    private void databaseComboBoxInit(int selectedIndex) {
+        if (Fn.notEqual(connectInfo.redisModeEnum(), Enum.RedisMode.CLUSTER)) {
+            var keySpace = RedisBasicService.service.getKeySpace(connectInfo);
+            for (int i = 0; i < dbList.size(); i++) {
+                var dbInfo = dbList.get(i);
+                var value = (String) keySpace.get(dbInfo.dbName().toLowerCase());
+                if (Fn.isNotEmpty(value)) {
+                    String[] s = value.split(",");
+                    String[] sub = s[0].split("=");
+                    dbInfo.setDbSize(Long.valueOf(sub[1]));
+                } else {
+                    dbInfo.setDbSize(0L);
+                }
+                scanKeysContextMap.put(dbInfo.dbIndex(), new ScanContext<>());
+                databaseComboBox.insertItemAt(dbInfo, i);
+            }
+        } else {
+            var dbInfo = dbList.get(0);
+            scanKeysContextMap.put(dbInfo.dbIndex(), new ScanContext<>());
+            var dbSize = RedisBasicService.service.dbSize(connectInfo);
+            dbInfo.setDbSize(dbSize);
+            databaseComboBox.insertItemAt(dbInfo, 0);
+            databaseComboBox.setEnabled(false);
+        }
+        databaseComboBox.setSelectedIndex(selectedIndex);
     }
 
     private void scanKeysAndInitScanInfo() {

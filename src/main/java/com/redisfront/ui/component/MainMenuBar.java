@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatDesktop;
 import com.formdev.flatlaf.extras.components.FlatButton;
+import com.formdev.flatlaf.util.SystemInfo;
 import com.redisfront.RedisFrontApplication;
 import com.redisfront.commons.constant.Const;
 import com.redisfront.commons.constant.UI;
@@ -62,7 +63,7 @@ public class MainMenuBar extends JMenuBar {
                 setMnemonic(LocaleUtils.getMenu("Menu.File.New").mnemonic());
             }
         };
-        addConnectMenu.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.CTRL_DOWN_MASK));
+        addConnectMenu.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | KeyEvent.CTRL_DOWN_MASK));
         addConnectMenu.addActionListener(e -> AddConnectDialog.showAddConnectDialog(((connectInfo) -> MainWindowForm.getInstance().addTabActionPerformed(connectInfo))));
         fileMenu.add(addConnectMenu);
 
@@ -75,7 +76,7 @@ public class MainMenuBar extends JMenuBar {
                 setMnemonic(LocaleUtils.getMenu("Menu.File.Open").mnemonic());
             }
         };
-        openConnectMenu.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
+        openConnectMenu.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | KeyEvent.CTRL_DOWN_MASK));
         openConnectMenu.addActionListener(e -> OpenConnectDialog.showOpenConnectDialog(
                 //打开连接回调
                 ((connectInfo) -> MainWindowForm.getInstance().addTabActionPerformed(connectInfo)),
@@ -198,7 +199,7 @@ public class MainMenuBar extends JMenuBar {
     private void aboutActionPerformed() {
         var titleLabel = new JLabel("RedisFront");
         titleLabel.putClientProperty(FlatClientProperties.STYLE_CLASS, "h1");
-        var link = "https://gitee.com/westboy/redis-front";
+        var link = "https://gitee.com/westboy/RedisFront";
         var linkLabel = new JLabel("<html><a href=\"#\">" + link + "</a></html>");
         linkLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         linkLabel.addMouseListener(new MouseAdapter() {
