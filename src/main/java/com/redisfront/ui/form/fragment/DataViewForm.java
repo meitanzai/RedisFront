@@ -233,10 +233,10 @@ public class DataViewForm {
                 jComboBox.setSelectedIndex(1);
             } catch (JSONException e) {
                 //json格式化异常
-                textEditor.textArea().setText(value);
+                textEditor.textArea().setText(textEditor.getOriginValue());
             }
         } else {
-            textEditor.textArea().setText(value);
+            textEditor.textArea().setText(textEditor.getOriginValue());
         }
     }
 
@@ -402,6 +402,7 @@ public class DataViewForm {
             valueUpdateSaveBtn.setEnabled(true);
             lengthLabel.setText("Length: " + strLen);
             keySizeLabel.setText("Size: " + Fn.getDataSize(value));
+            textEditor.setOriginValue(value);
             jsonValueFormat(value);
         });
     }
@@ -699,7 +700,7 @@ public class DataViewForm {
         jComboBox.addItem(SyntaxConstants.SYNTAX_STYLE_JSON);
         jComboBox.addActionListener((event) -> {
             var item = jComboBox.getSelectedItem();
-            String value = textEditor.textArea().getText();
+            String value = textEditor.getOriginValue();
             if (item instanceof String itemValue) {
                 if (Fn.equal(itemValue, SyntaxConstants.SYNTAX_STYLE_JSON)) {
                     if (JSONUtil.isTypeJSON(value)) {
@@ -711,6 +712,10 @@ public class DataViewForm {
                             SwingUtilities.invokeLater(() -> textEditor.textArea().setText(value));
                         }
                     }
+                } else {
+                    // 选择text/plain时，将显示值设置为原始值。
+                    // 其他格式下为了方便展示，可能会对原始值进行修改、去转义。选择text/plain时，应该恢复为原始值展示，有些情况下为了排查问题需要查看准确的原始值
+                    SwingUtilities.invokeLater(() -> textEditor.textArea().setText(textEditor.getOriginValue()));
                 }
             }
         });

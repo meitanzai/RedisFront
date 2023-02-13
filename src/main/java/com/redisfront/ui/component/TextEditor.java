@@ -18,6 +18,11 @@ public class TextEditor extends JPanel {
 
     private final RSyntaxTextArea textArea;
     private final RTextScrollPane scrollPane;
+    /**
+     * 原始值，用于保留用于textArea展示的原始值。
+     * 单独保存原始值，使得满足现有格式化展示需求的同时，也能随时查看原始数据
+     */
+    private String originValue;
 
     public static TextEditor newInstance() {
         return new TextEditor();
@@ -111,5 +116,11 @@ public class TextEditor extends JPanel {
         gutter.setLineNumberColor(UIManager.getColor("FlatEditorPane.gutter.lineNumberColor"));
     }
 
+    public String getOriginValue() {
+        return originValue;
+    }
 
+    public void setOriginValue(String originValue) {
+        this.originValue = originValue;
+    }
 }
