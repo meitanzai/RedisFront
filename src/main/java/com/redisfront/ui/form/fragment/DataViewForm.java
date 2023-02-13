@@ -1,6 +1,7 @@
 package com.redisfront.ui.form.fragment;
 
 import cn.hutool.core.io.unit.DataSizeUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONUtil;
 import com.formdev.flatlaf.FlatClientProperties;
@@ -188,13 +189,7 @@ public class DataViewForm {
                         var value = dataTable.getValueAt(row, 2);
                         SwingUtilities.invokeLater(() -> {
                             valueUpdateSaveBtn.setEnabled(true);
-                            try {
-                                String prettyStr = JSONUtil.toJsonPrettyStr(value);
-                                textEditor.textArea().setText(prettyStr);
-                            } catch (Exception ex) {
-                                //json格式化异常
-                                textEditor.textArea().setText(value.toString());
-                            }
+                            jsonValueFormat((String) value);
                         });
                     } else {
                         var value = dataTable.getValueAt(row, 1);
@@ -239,10 +234,22 @@ public class DataViewForm {
                 jComboBox.setSelectedIndex(1);
             } catch (JSONException e) {
                 //json格式化异常
-                textEditor.textArea().setText(value);
+                textEditor.textArea().setText(textEditor.getOriginValue());
+            }
+        } else if(StrUtil.isNotBlank(value) && value.trim().startsWith("\"") && value.trim().endsWith("\"")){
+            // 非json格式时，尝试去除转义后按json格式化
+            value = value.trim().replace("\\\"", "\"");
+            value = value.substring(1, value.length() - 1);
+            try {
+                String prettyStr = JSONUtil.toJsonPrettyStr(value);
+                textEditor.textArea().setText(prettyStr);
+                jComboBox.setSelectedIndex(1);
+            } catch (JSONException e) {
+                //json格式化异常
+                textEditor.textArea().setText(textEditor.getOriginValue());
             }
         } else {
-            textEditor.textArea().setText(value);
+            textEditor.textArea().setText(textEditor.getOriginValue());
         }
     }
 
@@ -408,6 +415,7 @@ public class DataViewForm {
             valueUpdateSaveBtn.setEnabled(true);
             lengthLabel.setText("Length: " + strLen);
             keySizeLabel.setText("Size: " + Fn.getDataSize(value));
+            textEditor.setOriginValue(value);
             jsonValueFormat(value);
         });
     }
@@ -705,7 +713,7 @@ public class DataViewForm {
         jComboBox.addItem(SyntaxConstants.SYNTAX_STYLE_JSON);
         jComboBox.addActionListener((event) -> {
             var item = jComboBox.getSelectedItem();
-            String value = textEditor.textArea().getText();
+            String value = textEditor.getOriginValue();
             if (item instanceof String itemValue) {
                 if (Fn.equal(itemValue, SyntaxConstants.SYNTAX_STYLE_JSON)) {
                     if (JSONUtil.isTypeJSON(value)) {
@@ -714,9 +722,25 @@ public class DataViewForm {
                             SwingUtilities.invokeLater(() -> textEditor.textArea().setText(prettyStr));
                         } catch (JSONException e) {
                             //json格式化异常
-                            SwingUtilities.invokeLater(() -> textEditor.textArea().setText(value));
+                            SwingUtilities.invokeLater(() -> textEditor.textArea().setText(textEditor.getOriginValue()));
+                        }
+                    } else if(StrUtil.isNotBlank(value) && value.trim().startsWith("\"") && value.trim().endsWith("\"")) {
+                        // 非json格式时，尝试去除转义后按json格式化
+                        String str = value.trim().replace("\\\"", "\"");
+                        str = str.substring(1, str.length() - 1);
+                        try {
+                            String prettyStr = JSONUtil.toJsonPrettyStr(str);
+                            SwingUtilities.invokeLater(() -> textEditor.textArea().setText(prettyStr));
+                            jComboBox.setSelectedIndex(1);
+                        } catch (JSONException e) {
+                            //json格式化异常
+                            SwingUtilities.invokeLater(() -> textEditor.textArea().setText(textEditor.getOriginValue()));
                         }
                     }
+                } else {
+                    // 选择text/plain时，将显示值设置为原始值。
+                    // 其他格式下为了方便展示，可能会对原始值进行修改、去转义。选择text/plain时，应该恢复为原始值展示，有些情况下为了排查问题需要查看准确的原始值
+                    SwingUtilities.invokeLater(() -> textEditor.textArea().setText(textEditor.getOriginValue()));
                 }
             }
         });
