@@ -1,6 +1,7 @@
 package com.redisfront.ui.form.fragment;
 
 import cn.hutool.core.io.unit.DataSizeUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONUtil;
 import com.formdev.flatlaf.FlatClientProperties;
@@ -227,6 +228,18 @@ public class DataViewForm {
 
     private void jsonValueFormat(String value) {
         if (JSONUtil.isTypeJSON(value)) {
+            try {
+                String prettyStr = JSONUtil.toJsonPrettyStr(value);
+                textEditor.textArea().setText(prettyStr);
+                jComboBox.setSelectedIndex(1);
+            } catch (JSONException e) {
+                //json格式化异常
+                textEditor.textArea().setText(textEditor.getOriginValue());
+            }
+        } else if(StrUtil.isNotBlank(value) && value.trim().startsWith("\"") && value.trim().endsWith("\"")){
+            // 非json格式时，尝试去除转义后按json格式化
+            value = value.trim().replace("\\\"", "\"");
+            value = value.substring(1, value.length() - 1);
             try {
                 String prettyStr = JSONUtil.toJsonPrettyStr(value);
                 textEditor.textArea().setText(prettyStr);
@@ -709,7 +722,19 @@ public class DataViewForm {
                             SwingUtilities.invokeLater(() -> textEditor.textArea().setText(prettyStr));
                         } catch (JSONException e) {
                             //json格式化异常
-                            SwingUtilities.invokeLater(() -> textEditor.textArea().setText(value));
+                            SwingUtilities.invokeLater(() -> textEditor.textArea().setText(textEditor.getOriginValue()));
+                        }
+                    } else if(StrUtil.isNotBlank(value) && value.trim().startsWith("\"") && value.trim().endsWith("\"")) {
+                        // 非json格式时，尝试去除转义后按json格式化
+                        String str = value.trim().replace("\\\"", "\"");
+                        str = str.substring(1, str.length() - 1);
+                        try {
+                            String prettyStr = JSONUtil.toJsonPrettyStr(str);
+                            SwingUtilities.invokeLater(() -> textEditor.textArea().setText(prettyStr));
+                            jComboBox.setSelectedIndex(1);
+                        } catch (JSONException e) {
+                            //json格式化异常
+                            SwingUtilities.invokeLater(() -> textEditor.textArea().setText(textEditor.getOriginValue()));
                         }
                     }
                 } else {
