@@ -188,13 +188,7 @@ public class DataViewForm {
                         var value = dataTable.getValueAt(row, 2);
                         SwingUtilities.invokeLater(() -> {
                             valueUpdateSaveBtn.setEnabled(true);
-                            try {
-                                String prettyStr = JSONUtil.toJsonPrettyStr(value);
-                                textEditor.textArea().setText(prettyStr);
-                            } catch (Exception ex) {
-                                //json格式化异常
-                                textEditor.textArea().setText(value.toString());
-                            }
+                            jsonValueFormat((String) value);
                         });
                     } else {
                         var value = dataTable.getValueAt(row, 1);
