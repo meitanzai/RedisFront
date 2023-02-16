@@ -173,6 +173,7 @@ public class DataViewForm {
                         var value = dataTable.getValueAt(row, 2);
                         var score = dataTable.getValueAt(row, 1);
                         SwingUtilities.invokeLater(() -> {
+                            textEditor.setOriginValue((String) value);
                             fieldOrScoreField.setText(score.toString());
                             valueUpdateSaveBtn.setEnabled(true);
                             jsonValueFormat((String) value);
@@ -181,6 +182,7 @@ public class DataViewForm {
                         var value = dataTable.getValueAt(row, 1);
                         var key = dataTable.getValueAt(row, 0);
                         SwingUtilities.invokeLater(() -> {
+                            textEditor.setOriginValue((String) value);
                             fieldOrScoreField.setText(key.toString());
                             valueUpdateSaveBtn.setEnabled(true);
                             jsonValueFormat((String) value);
@@ -188,12 +190,14 @@ public class DataViewForm {
                     } else if (dataTable.getModel() instanceof StreamTableModel) {
                         var value = dataTable.getValueAt(row, 2);
                         SwingUtilities.invokeLater(() -> {
+                            textEditor.setOriginValue((String) value);
                             valueUpdateSaveBtn.setEnabled(true);
                             jsonValueFormat((String) value);
                         });
                     } else {
                         var value = dataTable.getValueAt(row, 1);
                         SwingUtilities.invokeLater(() -> {
+                            textEditor.setOriginValue((String) value);
                             valueUpdateSaveBtn.setEnabled(true);
                             jsonValueFormat((String) value);
                         });
