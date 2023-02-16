@@ -804,6 +804,10 @@ public class DataViewForm {
                         }
                     }
                 }
+
+                // 更新后刷新缓存
+                textEditor.setOriginValue(newValue);
+                reloadAllActionPerformed();
             });
             AlertUtils.showInformationDialog(LocaleUtils.getMessageFromBundle("DataViewForm.showInformationDialog.updateSuccess.message"));
             SwingUtilities.invokeLater(this::refreshEnableBtn);
