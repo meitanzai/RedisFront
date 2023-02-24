@@ -13,10 +13,10 @@ import java.net.URL;
  * @author Jin
  */
 public class LoadingPanel extends JPanel {
+    private static final LoadingPanel instance = new LoadingPanel();
 
-
-    public static LoadingPanel newInstance() {
-        return new LoadingPanel();
+    public static LoadingPanel getSingleton() {
+        return instance;
     }
 
     private LoadingPanel() {

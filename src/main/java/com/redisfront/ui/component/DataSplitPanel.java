@@ -39,21 +39,18 @@ public class DataSplitPanel extends JSplitPane {
 
         this.setLeftComponent(dataSearchForm.getContentPanel());
         this.setRightComponent(commonNonePanel);
+        var dataViewForm = DataViewForm.newInstance(connectInfo);
+
+        dataViewForm.setRefreshBeforeHandler(dataSearchForm::scanBeforeProcess);
+        dataViewForm.setRefreshAfterHandler(dataSearchForm::scanAfterProcess);
+        dataViewForm.setDeleteActionHandler(() -> {
+            dataSearchForm.deleteActionPerformed();
+            setRightComponent(commonNonePanel);
+        });
+        dataViewForm.setCloseActionHandler(() -> setRightComponent(commonNonePanel));
 
         //节点点击事件
         dataSearchForm.setNodeClickProcessHandler((treeNodeInfo) -> {
-            var dataViewForm = DataViewForm.newInstance(connectInfo);
-
-            dataViewForm.setRefreshBeforeHandler(dataSearchForm::scanBeforeProcess);
-
-            dataViewForm.setRefreshAfterHandler(dataSearchForm::scanAfterProcess);
-
-            dataViewForm.setDeleteActionHandler(() -> {
-                dataSearchForm.deleteActionPerformed();
-                setRightComponent(commonNonePanel);
-            });
-
-            dataViewForm.setCloseActionHandler(() -> setRightComponent(commonNonePanel));
             var startTime = System.currentTimeMillis();
             //加载数据并展示
             dataViewForm.dataChangeActionPerformed(treeNodeInfo.key(),
@@ -75,7 +72,7 @@ public class DataSplitPanel extends JSplitPane {
                     var flatLineBorder = new FlatLineBorder(new Insets(0, 2, 0, 2), UIManager.getColor("Component.borderColor"));
                     setBorder(flatLineBorder);
                     setLayout(new BorderLayout());
-                    add(LoadingPanel.newInstance(), BorderLayout.CENTER);
+                    add(LoadingPanel.getSingleton(), BorderLayout.CENTER);
                 }
             }, BorderLayout.CENTER);
         }

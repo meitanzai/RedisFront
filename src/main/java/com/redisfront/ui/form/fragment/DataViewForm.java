@@ -274,7 +274,7 @@ public class DataViewForm {
                                     refreshDisableBtn();
                                     refreshBeforeHandler.handle();
                                     Fn.removeAllComponent(dataPanel);
-                                    dataPanel.add(LoadingPanel.newInstance(), BorderLayout.CENTER);
+                                    dataPanel.add(LoadingPanel.getSingleton(), BorderLayout.CENTER);
                                     dataPanel.updateUI();
                                 });
                                 //加载数据
