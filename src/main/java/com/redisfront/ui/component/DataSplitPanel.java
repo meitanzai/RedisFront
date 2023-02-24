@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 /**
  * MainSplitComponent
@@ -21,7 +23,8 @@ import java.awt.*;
 public class DataSplitPanel extends JSplitPane {
     private static final Logger log = LoggerFactory.getLogger(DataSplitPanel.class);
     private final ConnectInfo connectInfo;
-
+    private Integer dividerLocation;
+    private DataViewForm dataViewForm;
     public static DataSplitPanel newInstance(ConnectInfo connectInfo) {
         return new DataSplitPanel(connectInfo);
     }
@@ -32,14 +35,12 @@ public class DataSplitPanel extends JSplitPane {
     }
 
     public DataSplitPanel(ConnectInfo connectInfo) {
-
         this.connectInfo = connectInfo;
-
         var dataSearchForm = DataSearchForm.newInstance(connectInfo);
 
         this.setLeftComponent(dataSearchForm.getContentPanel());
         this.setRightComponent(commonNonePanel);
-        var dataViewForm = DataViewForm.newInstance(connectInfo);
+        this.dataViewForm = DataViewForm.newInstance(connectInfo);
 
         dataViewForm.setRefreshBeforeHandler(dataSearchForm::scanBeforeProcess);
         dataViewForm.setRefreshAfterHandler(dataSearchForm::scanAfterProcess);
@@ -53,11 +54,37 @@ public class DataSplitPanel extends JSplitPane {
         dataSearchForm.setNodeClickProcessHandler((treeNodeInfo) -> {
             var startTime = System.currentTimeMillis();
             //加载数据并展示
-            dataViewForm.dataChangeActionPerformed(treeNodeInfo.key(),
-                    () -> SwingUtilities.invokeLater(() -> setRightComponent(commonLoadingPanel)),
-                    () -> SwingUtilities.invokeLater(() -> setRightComponent(dataViewForm.contentPanel())));
-
+            dataViewForm.dataChangeActionPerformed(treeNodeInfo.key(), this::loading, this::refreshDataView);
             log.info("加载key用时：{}/ms", (System.currentTimeMillis() - startTime) / 1000);
+        });
+        this.addPropertyChangeListener("dividerLocation", evt -> {
+            dividerLocation = (Integer)evt.getNewValue();
+        });
+    }
+
+    /**
+     * loading显示
+     */
+    private void loading() {
+        SwingUtilities.invokeLater(() -> {
+            setRightComponent(commonLoadingPanel);
+            if (null != dividerLocation) {
+                // 恢复分割位置
+                setDividerLocation(dividerLocation);
+            }
+        });
+    }
+
+    /**
+     * 刷新DataView
+     */
+    private void refreshDataView() {
+        SwingUtilities.invokeLater(() -> {
+            setRightComponent(dataViewForm.contentPanel());
+            if (null != dividerLocation) {
+                // 恢复分割位置
+                setDividerLocation(dividerLocation);
+            }
         });
     }
 
