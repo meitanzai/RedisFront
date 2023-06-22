@@ -34,9 +34,9 @@ version = "1.0.7"
 
 val applicationName: String = "RedisFront"
 val organization: String = "dromara.org"
-val supportUrl: String = "https://dromara.org"
+val supportUrl: String = "https://redisfront.dromara.org"
 
-val flatlafVersion = "3.0"
+val flatlafVersion = "3.1.1"
 val hutoolVersion = "5.8.10"
 val fifesoftVersion = "3.2.0"
 val derbyVersion = "10.15.2.0"
@@ -89,7 +89,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:${logbackVersion}")
     implementation("at.swimmesberger:swingx-core:1.6.8")
     implementation("com.jgoodies:jgoodies-forms:1.9.0")
-    implementation("commons-net:commons-net:3.8.0")
+    implementation("commons-net:commons-net:3.9.0")
     implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
     implementation("org.bouncycastle:bcprov-jdk15on:1.70")
     implementation("com.intellij:forms_rt:7.0.3")
@@ -129,9 +129,9 @@ tasks.jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
-        attributes("Main-Class" to "com.redisfront.RedisFrontApplication")
-        attributes("Implementation-Vendor" to "www.redisfront.com")
-        attributes("Implementation-Copyright" to "redisfront")
+        attributes("Main-Class" to "org.dromara.redisfront.Application")
+        attributes("Implementation-Vendor" to "https://redisfront.dromara.org")
+        attributes("Implementation-Copyright" to "RedisFront")
         attributes("Implementation-Version" to project.version)
         attributes("Multi-Release" to "true")
     }
@@ -161,7 +161,7 @@ tasks.jar {
 }
 
 configure<PackagePluginExtension> {
-    mainClass("com.redisfront.RedisFrontApplication")
+    mainClass("org.dromara.redisfront.Application")
     packagingJdk(File(System.getProperty("java.home")))
     bundleJre(true)
     customizedJre(true)
